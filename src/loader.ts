@@ -1,3 +1,4 @@
+import { getOptions } from 'loader-utils';
 import * as path from "path";
 import assert from "assert";
 import { parseTSScript } from "buntis";
@@ -18,8 +19,19 @@ const makeRPCMethodClient = (path, name) => {
   }`;
 };
 
-export default (namespace: string) => function (content: string, map: any, meta: any) {
-  const resourcePath = this.resourcePath;
+const schema = {
+  type: 'object',
+  properties: {
+    namespace: {
+      type: 'string'
+    }
+  }
+};
+
+export default function (content: string, map: any, meta: any) {
+  const options = getOptions(this);
+  const namespace = options.namespace == null || options.namespace.length === 0 ? 'server' : options.namespace;
+
   const serverPattern = new RegExp(`\.${namespace}\.[jt]s$`);
   const isServerModule =
     this.resourcePath.startsWith(srcDir) &&
