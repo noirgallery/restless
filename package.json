@@ -3,12 +3,13 @@
   "description": "TODO",
   "version": "0.0.1",
   "files": [
-    "bin"
+    "lib"
   ],
   "scripts": {
     "test:unit": "NODE_ENV=testing mocha {src,tests}/{**,**/**}/*.spec.ts --reporter list --require ts-node/register --require tsconfig-paths/register --recursive --exit --bail --timeout 120000",
     "test": "npm run test:unit",
-    "build": "tsc --project tsconfig.json && rm -rf bin/spec && find bin -type f -name '*.spec.js' -exec rm {} +"
+    "prepublish": "npm run build && npm run test",
+    "build": "tsc --project tsconfig.json && rm -rf lib/spec && find lib -type f -name '*.spec.js' -exec rm {} +"
   },
   "dependencies": {
     "@types/node": "^14.0.25",
