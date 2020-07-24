@@ -1,0 +1,10 @@
+.DS_Store
+/node_modules/
+yarn-error.log
+
+.awcache
+yarn-error.log
+.env
+.npmrc
+
+bin

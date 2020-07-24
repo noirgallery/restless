@@ -1,0 +1,30 @@
+{
+  "name": "@noirgallery/restless",
+  "description": "TODO",
+  "version": "0.0.1",
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "test:unit": "NODE_ENV=testing mocha {src,tests}/{**,**/**}/*.spec.ts --reporter list --require ts-node/register --require tsconfig-paths/register --recursive --exit --bail --timeout 120000",
+    "test": "npm run test:unit",
+    "build": "tsc --project tsconfig.json && rm -rf bin/spec && find bin -type f -name '*.spec.js' -exec rm {} +"
+  },
+  "dependencies": {
+    "@types/node": "^14.0.25",
+    "body-parser": "^1.19.0",
+    "buntis": "^0.2.1",
+    "express": "^4.17.1",
+    "typescript": "^3.9.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "@types/mocha": "^8.0.0",
+    "@types/supertest": "^2.0.10",
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
+    "supertest": "^4.0.2",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0"
+  }
+}
