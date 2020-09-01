@@ -11,7 +11,7 @@ const makeRPCMethodClient = (srcDir, path, name) => {
   return `export function ${name} (params) {
     return fetch(${JSON.stringify(
       RPC_HOST + "/__rpc"
-    )}, { method: "POST", credentials: 'include', headers: {"Content-Type": "application/json"},  body: JSON.stringify({ id: ${JSON.stringify(
+    )}, { method: "POST", credentials: "include", headers: {"Content-Type": "application/json"},  body: JSON.stringify({ id: ${JSON.stringify(
     methodId
   )}, args: params }) }).then(res => { 
     if (res.status === 200) {
