@@ -37,7 +37,7 @@ const schema = {
 };
 
 export default function (content: string, map: any, meta: any) {
-  const options = getOptions(this);
+  const options = getOptions(this) as any;
   const namespace =
     options.namespace == null || options.namespace.length === 0
       ? "server"
