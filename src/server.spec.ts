@@ -1,9 +1,8 @@
-import * as path from 'path';
-import request from 'supertest';
-import express from 'express';
-import { Server, createServer } from 'http';
-import { expect } from 'chai';
-import { middlewares } from './server';
+import { expect } from "chai";
+import express from "express";
+import { createServer, Server } from "http";
+import request from "supertest";
+import { middleware } from "./server";
 
 // --------------------------------------------------
 // variables
@@ -23,21 +22,27 @@ describe("server", () => {
     server.close();
   });
 
-  describe('middlewares', () => {
-    it('runs', async() => {
-      app.use('/__rpc', ...middlewares(path.resolve(__dirname, 'spec'), 'test'));
+  describe("middlewares", () => {
+    it("runs", async () => {
+      app.use(
+        "/__rpc",
+        ...middleware({
+          getAPIModule: (moduleName) => require(`./spec/${moduleName}`),
+          namespace: "test",
+        })
+      );
 
-       // make the request
-       const { body } = await request(server)
-       .post(`/__rpc`)
-       .send({
-         id: 'module/foo',
-         args: ['foo', 'bar']
-       })
-       .expect('Content-Type', /json/)
-       .expect(200);
+      // make the request
+      const { body } = await request(server)
+        .post(`/__rpc`)
+        .send({
+          id: "module/foo",
+          args: { arg1: "foo", arg2: "bar" },
+        })
+        .expect("Content-Type", /json/)
+        .expect(200);
 
-       expect(body).equal('foo:bar');
+      expect(body).equal("foo:bar");
     });
   });
 });

@@ -1,38 +1,50 @@
-import { getOptions } from 'loader-utils';
-import * as path from "path";
+import { getOptions } from "loader-utils";
+import * as Path from "path";
 import assert from "assert";
 import { parseTSScript } from "buntis";
 
-const srcDir = path.join(__dirname, "src");
-
-const makeRPCMethodClient = (path, name) => {
-  const methodNamespace = path.relative(srcDir, path);
+const makeRPCMethodClient = (srcDir, path, name) => {
+  const methodNamespace = Path.relative(srcDir, path);
   const methodId = `${methodNamespace}/${name}`;
   const RPC_HOST = process.env.RPC_HOST;
 
-  return `export function ${name} (...args) {
+  return `export function ${name} (params) {
     return fetch(${JSON.stringify(
       RPC_HOST + "/__rpc"
-    )}, { method: "POST", headers: {"Content-Type": "application/json"},  body: JSON.stringify({ id: ${JSON.stringify(
+    )}, { method: "POST", credentials: 'include', headers: {"Content-Type": "application/json"},  body: JSON.stringify({ id: ${JSON.stringify(
     methodId
-  )}, args: args }) }).then(res => res.json())
+  )}, args: params }) }).then(res => { 
+    if (res.status === 200) {
+      return res.json()
+    } else {
+      return res.text().then(text => {
+        throw new Error('API Error: ' + ${JSON.stringify(
+          methodId
+        )} + ': ' + text)
+      })
+    }
+  })
   }`;
 };
 
 const schema = {
-  type: 'object',
+  type: "object",
   properties: {
     namespace: {
-      type: 'string'
-    }
-  }
+      type: "string",
+    },
+  },
 };
 
 export default function (content: string, map: any, meta: any) {
   const options = getOptions(this);
-  const namespace = options.namespace == null || options.namespace.length === 0 ? 'server' : options.namespace;
+  const namespace =
+    options.namespace == null || options.namespace.length === 0
+      ? "server"
+      : options.namespace;
+  const srcDir = options.srcDir;
 
-  const serverPattern = new RegExp(`\.${namespace}\.[jt]s$`);
+  const serverPattern = new RegExp(`\.${namespace}\.[tj]s$`);
   const isServerModule =
     this.resourcePath.startsWith(srcDir) &&
     serverPattern.test(this.resourcePath);
@@ -48,7 +60,7 @@ export default function (content: string, map: any, meta: any) {
         return (value.declaration as any).declarations.map((value: any) => {
           assert(
             value.id.type === "Identifier",
-            "[noir.datstack] Server module export must not use destructuring syntax."
+            "[restless] Server module export must not use destructuring syntax."
           );
 
           return value.id.name;
@@ -59,5 +71,13 @@ export default function (content: string, map: any, meta: any) {
     })
   );
 
-  return names.map(value => makeRPCMethodClient(this.resourcePath, value)).join("\n");
-};
+  return names
+    .map((value) =>
+      makeRPCMethodClient(
+        srcDir,
+        this.resourcePath.replace(serverPattern, ""),
+        value
+      )
+    )
+    .join("\n");
+}
