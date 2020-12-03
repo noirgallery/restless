@@ -3,14 +3,14 @@ import * as Path from "path";
 import assert from "assert";
 import { parseTSScript } from "buntis";
 
-const makeRPCMethodClient = (srcDir, path, name) => {
+const makeRPCMethodClient = (srcDir, path, name, rpcEndpoint) => {
   const methodNamespace = Path.relative(srcDir, path);
   const methodId = `${methodNamespace}/${name}`;
   const RPC_HOST = process.env.RPC_HOST;
 
   return `export function ${name} (params) {
     return fetch(${JSON.stringify(
-      RPC_HOST + "/__rpc"
+      rpcEndpoint
     )}, { method: "POST", credentials: "include", headers: {"Content-Type": "application/json"},  body: JSON.stringify({ id: ${JSON.stringify(
     methodId
   )}, args: params }) }).then(res => { 
@@ -43,6 +43,7 @@ export default function (content: string, map: any, meta: any) {
       ? "server"
       : options.namespace;
   const srcDir = options.srcDir;
+  const endpoint = options.restlessEndpoint;
 
   const serverPattern = new RegExp(`\.${namespace}\.[tj]s$`);
   const isServerModule =
@@ -76,7 +77,8 @@ export default function (content: string, map: any, meta: any) {
       makeRPCMethodClient(
         srcDir,
         this.resourcePath.replace(serverPattern, ""),
-        value
+        value,
+        endpoint
       )
     )
     .join("\n");

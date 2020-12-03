@@ -3,6 +3,7 @@ import { json } from "body-parser";
 import * as t from "io-ts";
 import * as fp from "fp-ts";
 import * as PathReporter from "io-ts/lib/PathReporter";
+import { Observable } from "rxjs/internal/Observable";
 
 type ContextSelectors<Ctx> = {
   [key in keyof Ctx]: (request: any) => Promise<Ctx[key]> | Ctx[key];
@@ -39,7 +40,7 @@ export const method = <R, C, P extends t.Any = t.NeverC>(
     let params: any;
     let request: any;
 
-    if (description.params != null) {
+    if (args.length > 1) {
       params = args[0];
       request = args[1];
     } else {
@@ -93,19 +94,44 @@ export interface RestlessOptions {
   getAPIModule: (moduleName: string) => any;
 }
 
-export const middleware = ({ namespace, getAPIModule }: RestlessOptions) => {
+export const getMethodResponse = async (
+  { getAPIModule, namespace }: RestlessOptions,
+  request,
+  req
+) => {
+  const args = request.args == null ? {} : request.args;
+
+  if (typeof request.id === "string") {
+    throw new Error(`unexpected _rpc request body ${JSON.stringify(request)}`);
+  }
+
+  const method = path.basename(request.id);
+  const moduleId = path.dirname(request.id);
+
+  const moduleName = `${moduleId}.${namespace}.ts`;
+  const moduleObject = await getAPIModule(moduleName);
+
+  return (await moduleObject[method](args, req)) ?? null;
+};
+
+export const socket = (options: RestlessOptions) => {
+  return {
+    idleTimeout: 30,
+
+    open(ws) {
+      ws.on("message", () => {});
+    },
+  };
+};
+
+export const middleware = (options: RestlessOptions) => {
   return [
     json(),
     async (req, res, next) => {
       const request = req.body;
-      const args = request.args == null ? {} : request.args;
-      const method = path.basename(request.id);
-      const moduleId = path.dirname(request.id);
 
-      const moduleName = `${moduleId}.${namespace}.ts`;
-      const moduleObject = await getAPIModule(moduleName);
       try {
-        const result = (await moduleObject[method](args, req)) ?? null;
+        const result = await getMethodResponse(options, request, req);
 
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
