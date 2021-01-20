@@ -1,5 +1,6 @@
 /// <reference types="connect" />
 import * as t from "io-ts";
+export * from "./errors";
 declare type ContextSelectors<Ctx> = {
     [key in keyof Ctx]: (request: any) => Promise<Ctx[key]> | Ctx[key];
 };
@@ -19,4 +20,3 @@ export declare const socket: (options: RestlessOptions) => {
     open(ws: any): void;
 };
 export declare const middleware: (options: RestlessOptions) => import("connect").NextHandleFunction[];
-export {};
