@@ -139,12 +139,8 @@ export const middleware = (options: RestlessOptions) => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (e) {
-        if (e instanceof HTTPRedirect) {
-          res.writeHead(e.status, {
-            Location: e.dest,
-          });
-          res.end();
-        } else if (e instanceof HTTPError) {
+        if (e instanceof HTTPError) {
+          console.error(e);
           res.writeHead(e.status);
           res.end(JSON.stringify({ message: e.message }));
         } else {
