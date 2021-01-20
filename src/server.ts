@@ -3,7 +3,6 @@ import { json } from "body-parser";
 import * as t from "io-ts";
 import * as fp from "fp-ts";
 import * as PathReporter from "io-ts/lib/PathReporter";
-import { Observable } from "rxjs/internal/Observable";
 
 type ContextSelectors<Ctx> = {
   [key in keyof Ctx]: (request: any) => Promise<Ctx[key]> | Ctx[key];
@@ -56,14 +55,15 @@ export const method = <R, C, P extends t.Any = t.NeverC>(
 
     if (description.params != null) {
       const result = description.params.decode(params);
-
-      fp.function.pipe(
+      const correct = fp.function.pipe(
         result,
         fp.either.mapLeft((error) => {
           const errors = PathReporter.failure(error);
           throw new Error(`Data Error:\n${errors.join("\n")}`);
         })
       );
+
+      params = fp.either.isRight(correct) ? correct.right : null;
     }
 
     const ctx =
@@ -101,7 +101,7 @@ export const getMethodResponse = async (
 ) => {
   const args = request.args == null ? {} : request.args;
 
-  if (typeof request.id === "string") {
+  if (typeof request.id !== "string") {
     throw new Error(`unexpected _rpc request body ${JSON.stringify(request)}`);
   }
 

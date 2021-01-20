@@ -13,5 +13,10 @@ export interface RestlessOptions {
     namespace: string;
     getAPIModule: (moduleName: string) => any;
 }
-export declare const middleware: ({ namespace, getAPIModule }: RestlessOptions) => import("connect").NextHandleFunction[];
+export declare const getMethodResponse: ({ getAPIModule, namespace }: RestlessOptions, request: any, req: any) => Promise<any>;
+export declare const socket: (options: RestlessOptions) => {
+    idleTimeout: number;
+    open(ws: any): void;
+};
+export declare const middleware: (options: RestlessOptions) => import("connect").NextHandleFunction[];
 export {};
