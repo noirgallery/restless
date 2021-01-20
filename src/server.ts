@@ -3,6 +3,9 @@ import { json } from "body-parser";
 import * as t from "io-ts";
 import * as fp from "fp-ts";
 import * as PathReporter from "io-ts/lib/PathReporter";
+import { HTTPError, HTTPRedirect } from "./errors";
+
+export * from "./errors";
 
 type ContextSelectors<Ctx> = {
   [key in keyof Ctx]: (request: any) => Promise<Ctx[key]> | Ctx[key];
@@ -136,9 +139,19 @@ export const middleware = (options: RestlessOptions) => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (e) {
-        console.error(e);
-        res.writeHead(500);
-        res.end("Internal error");
+        if (e instanceof HTTPRedirect) {
+          res.writeHead(e.status, {
+            Location: e.dest,
+          });
+          res.end();
+        } else if (e instanceof HTTPError) {
+          res.writeHead(e.status);
+          res.end(JSON.stringify({ message: e.message }));
+        } else {
+          console.error(e);
+          res.writeHead(500);
+          res.end("Internal error");
+        }
       }
     },
   ];

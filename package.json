@@ -1,7 +1,7 @@
 {
   "name": "@noirgallery/restless",
   "description": "TODO",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "lib/server.js",
   "files": [
     "lib"
