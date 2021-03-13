@@ -3,5 +3,5 @@ import transform from "./transform";
 
 export default function (content: string, map: any, meta: any) {
   const options = getOptions(this) as any;
-  return transform(content, options);
+  return transform(this.resourcePath, content, options);
 }

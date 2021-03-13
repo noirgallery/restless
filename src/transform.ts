@@ -36,6 +36,7 @@ const schema = {
 };
 
 export default function (
+  resourcePath: string,
   code: string,
   options: {
     namespace: string;
@@ -52,8 +53,7 @@ export default function (
 
   const serverPattern = new RegExp(`\.${namespace}\.[tj]s$`);
   const isServerModule =
-    this.resourcePath.startsWith(srcDir) &&
-    serverPattern.test(this.resourcePath);
+    resourcePath.startsWith(srcDir) && serverPattern.test(resourcePath);
 
   if (!isServerModule) {
     return code;
@@ -81,7 +81,7 @@ export default function (
     .map((value) =>
       makeRPCMethodClient(
         srcDir,
-        this.resourcePath.replace(serverPattern, ""),
+        resourcePath.replace(serverPattern, ""),
         value,
         endpoint
       )
