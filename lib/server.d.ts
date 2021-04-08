@@ -1,15 +1,18 @@
 /// <reference types="connect" />
 import * as t from "io-ts";
 export * from "./errors";
-declare type ContextSelectors<Ctx> = {
-    [key in keyof Ctx]: (request: any) => Promise<Ctx[key]> | Ctx[key];
-};
-export interface MethodDescription<Params extends t.Any, Result, Ctx> {
+export interface MethodDescription<Params extends t.Any, Result, Ctx extends {
+    [key: string]: (req: any) => any;
+}> {
     params?: Params;
-    context?: ContextSelectors<Ctx>;
-    handler: (params: t.TypeOf<Params>, ctx: Ctx) => Promise<Result> | Result;
+    context?: Ctx;
+    handler: (params: t.TypeOf<Params>, ctx: {
+        [key in keyof Ctx]: Ctx[key] extends (value: any) => infer ret ? ret : never;
+    }) => Promise<Result> | Result;
 }
-export declare const method: <R, C, P extends t.Any = t.NeverC>(description: MethodDescription<P, R, C>) => P extends t.NeverC ? (request?: any) => Promise<R> : (params: t.TypeOf<P>, request?: any) => Promise<R>;
+export declare const method: <R, Ctx extends {
+    [key: string]: (req: any) => any;
+}, P extends t.Any = t.NeverC>(description: MethodDescription<P, R, Ctx>) => P extends t.NeverC ? (request?: Ctx[keyof Ctx] extends (arg: infer arg) => any ? arg : never) => Promise<R> : (params: t.TypeOf<P>, request?: Ctx[keyof Ctx] extends (arg: infer arg_1) => any ? arg_1 : never) => Promise<R>;
 export interface RestlessOptions {
     namespace: string;
     getAPIModule: (moduleName: string) => any;
