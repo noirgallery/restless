@@ -1,6 +1,6 @@
 import assert from "assert";
-import { parseTSScript } from "buntis";
 import * as Path from "path";
+import * as babelParse from '@babel/parser'
 
 const makeRPCMethodClient = (srcDir, path, name, rpcEndpoint) => {
   const methodNamespace = Path.relative(srcDir, path);
@@ -59,9 +59,9 @@ export default function (
     return code;
   }
 
-  const source = parseTSScript(code);
+  const file= babelParse.parse(code, { sourceType: 'module', plugins: ["typescript", "nullishCoalescingOperator"]});
   const names = [].concat(
-    ...source.body.map((value) => {
+    ...file.program.body.map((value) => {
       if (value.type === "ExportNamedDeclaration") {
         return (value.declaration as any).declarations.map((value: any) => {
           assert(
